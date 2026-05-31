@@ -14,20 +14,12 @@ jobs:
 
       - name: Trigger Git Pull on Server
         run: |
-          curl -X POST \
-            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
-            -d "command=cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && git pull origin main" \
-            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+          curl -X POST -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" -d "command=cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && git pull origin main" "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
 
       - name: Run Database Migrations and Collect Static
         run: |
-          curl -X POST \
-            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
-            -d "command=source /home/${{ secrets.PA_USERNAME }}/.virtualenvs/ecotrack-env/bin/activate && cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && python manage.py migrate --noinput && python manage.py collectstatic --noinput" \
-            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+          curl -X POST -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" -d "command=source /home/${{ secrets.PA_USERNAME }}/.virtualenvs/ecotrack-env/bin/activate && cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && python manage.py migrate --noinput && python manage.py collectstatic --noinput" "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
 
       - name: Reload PythonAnywhere Webapp
         run: |
-          curl -X POST \
-            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
-            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/"
+          curl -X POST -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/"
