@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="flex min-h-[80vh] items-center justify-center py-12 px-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-md border border-gray-100">
+
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Join EcoTrack</h1>
+            <p class="text-gray-500">Start donating and claiming items in your community</p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <form method="POST" action="{% url 'account_signup' %}" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Username Input -->
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                    Username
+                </label>
+                <input
+                    type="text"
+                    name="{{ form.username.name }}"
+                    id="{{ form.username.id_for_label }}"
+                    value="{{ form.username.value|default:'' }}"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 outline-none transition"
+                    placeholder="Choose a unique username"
+                />
+                {% if form.username.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Email Input -->
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                    Email Address
+                </label>
+                <input
+                    type="email"
+                    name="{{ form.email.name }}"
+                    id="{{ form.email.id_for_label }}"
+                    value="{{ form.email.value|default:'' }}"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 outline-none transition"
+                    placeholder="your@email.com"
+                />
+                {% if form.email.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password Input -->
+            <div>
+                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                    Password
+                </label>
+                <input
+                    type="password"
+                    name="{{ form.password1.name }}"
+                    id="{{ form.password1.id_for_label }}"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 outline-none transition"
+                    placeholder="Create a strong password"
+                />
+                {% if form.password1.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password Requirements -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p class="text-blue-900 text-sm font-semibold mb-2">Password Requirements:</p>
+                <ul class="text-blue-800 text-xs space-y-1">
+                    <li>✓ At least 8 characters long</li>
+                    <li>✓ Not similar to username or email</li>
+                    <li>✓ Not a commonly used password</li>
+                    <li>✓ Contains letters and numbers</li>
+                </ul>
+            </div>
+
+            <!-- Password Confirmation Input -->
+            <div>
+                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                    Confirm Password
+                </label>
+                <input
+                    type="password"
+                    name="{{ form.password2.name }}"
+                    id="{{ form.password2.id_for_label }}"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 outline-none transition"
+                    placeholder="Confirm your password"
+                />
+                {% if form.password2.errors %}
+                    <p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- General Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-red-700 text-sm">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Sign Up Button -->
+            <button
+                type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+            >
+                Create Account
+            </button>
+        </form>
+
+        <!-- Sign In Link -->
+        <div class="mt-6 text-center">
+            <p class="text-gray-600 text-sm">
+                Already have an account?
+                <a href="{% url 'account_login' %}" class="text-green-600 hover:text-green-700 font-medium">
+                    Sign in here
+                </a>
+            </p>
+        </div>
+
+        <!-- Community Message -->
+        <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+            <p class="text-green-800 text-sm">
+                <span class="text-lg">🌱</span><br>
+                Join thousands of community members reducing waste and sharing resources!
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

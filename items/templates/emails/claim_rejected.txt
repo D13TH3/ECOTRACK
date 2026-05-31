@@ -1,0 +1,17 @@
+Hello {{ recipient_name }},
+
+Unfortunately, your claim for the item has been rejected.
+
+Item: {{ item_title }}
+
+Rejected by: {{ actor_name }}
+
+The item is now available again for other users to claim. Feel free to try claiming other items or browsing more options!
+
+Browse more items:
+http://{{ domain }}/items/
+
+Better luck next time!
+
+Best regards,
+EcoTrack Team

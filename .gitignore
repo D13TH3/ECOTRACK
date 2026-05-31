@@ -1,0 +1,38 @@
+# --- Virtual Environment Directories (CRITICAL) ---
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+.venv/
+venv/
+
+# --- Local Databases ---
+*.sqlite3
+db.sqlite3
+
+# --- Python System Caches & Compiled Code ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- User Media Uploads ---
+media/
+
+# --- Static Assets ---
+# This ignores your collected static asset clutter but safely forces 
+# Git to track your required tailwind.config.js configuration file
+static/
+!static/css/tailwind.css
+
+# --- Environment Credentials & Configuration Secrets ---
+.env
+*.env
+secrets.py
+
+# --- Operating System Hidden Trash Files ---
+.DS_Store
+Thumbs.db
+
+# --- Windows Executable Binary Applications ---
+tailwindcss.exe
+*.exe

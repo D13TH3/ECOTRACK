@@ -1,0 +1,17 @@
+Hello {{ recipient_name }},
+
+Great news! Your claim has been approved!
+
+Item: {{ item_title }}
+
+Approved by: {{ actor_name }}
+
+The item is now marked as COLLECTED. Please arrange pickup with the donor as soon as possible.
+
+View the item details here:
+http://{{ domain }}/items/{{ item_id }}/
+
+Thank you for participating in EcoTrack and helping the community reduce waste!
+
+Best regards,
+EcoTrack Team

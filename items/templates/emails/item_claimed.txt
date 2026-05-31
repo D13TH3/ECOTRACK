@@ -1,0 +1,17 @@
+Hello {{ recipient_name }},
+
+Someone has claimed your item!
+
+Item: {{ item_title }}
+
+Claimed by: {{ actor_name }}
+
+To view the claim and approve or reject it, visit your dashboard:
+http://{{ domain }}/items/dashboard/
+
+If you approve the claim, the item status will be set to COLLECTED and the claimant will be notified to arrange pickup.
+
+If you reject the claim, the item will return to AVAILABLE status and other users can claim it.
+
+Best regards,
+EcoTrack Team

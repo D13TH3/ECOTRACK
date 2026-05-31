@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoTrack - Community Recycling Marketplace{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'dist/output.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="{% url 'item_list' %}" class="text-2xl font-bold text-green-600">
+                        🌱 EcoTrack
+                    </a>
+                </div>
+                <div class="flex gap-4 items-center">
+                    {% url 'item_list' as item_list_url %}
+                    {% url 'account_login' as account_login_url %}
+                    <a href="{{ item_list_url }}" class="px-4 py-2 rounded-full font-semibold transition {% if request.path == item_list_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                        Browse Items
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'item_create' %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                            + Post Item
+                        </a>
+                        {% url 'dashboard' as dashboard_url %}
+                        <a href="{{ dashboard_url }}" class="px-4 py-2 rounded-full font-semibold transition {% if request.path == dashboard_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                            📊 Dashboard
+                        </a>
+                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-gray-600">
+                            👤 {{ user.username }}
+                            <span id="unread-badge" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden"></span>
+                        </span>
+                        {% if user.is_superuser %}
+                            <a href="/admin/" class="text-gray-600 hover:text-gray-900">
+                                Admin
+                            </a>
+                        {% endif %}
+                        <!-- FIXED: Switched to Allauth's dynamic URL logout tag to prevent session state locks -->
+                        <a id="logoutLink" href="{% url 'account_logout' %}" class="text-red-600 hover:text-red-900 text-sm font-medium">
+                            Logout
+                        </a>
+                    {% else %}
+                        <!-- FIXED: Redirects to your gorgeous new custom login screen instead of the blank admin panel -->
+                        <a href="{{ account_login_url }}" class="px-4 py-2 rounded-full font-semibold transition {% if request.path == account_login_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                            Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded bg-blue-100 text-blue-700">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-2">🌱 EcoTrack</h3>
+                    <p class="text-gray-400">
+                        A community recycling and upcycling marketplace where you can give away items for free.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-2">Quick Links</h3>
+                    <ul class="text-gray-400 space-y-2">
+                        <li><a href="{% url 'item_list' %}" class="hover:text-white">Browse Items</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'item_create' %}" class="hover:text-white">Post Item</a></li>
+                            {% if user.is_superuser %}
+                                <li><a href="/admin/" class="hover:text-white">Admin</a></li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-2">About</h3>
+                    <p class="text-gray-400 text-sm">
+                        Built with Django and ❤️ for sustainable community practices.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 EcoTrack. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="logoutModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.65); align-items:center; justify-content:center; padding:1.25rem;">
+        <div style="background:#ffffff; border-radius:1rem; box-shadow:0 24px 80px rgba(15,23,42,0.18); max-width:28rem; width:100%; padding:1.5rem;">
+            <h2 class="text-2xl font-bold text-slate-900">Confirm logout</h2>
+            <p class="text-slate-600 mt-3">Are you sure you want to log out?</p>
+            <div class="mt-6 flex items-center justify-between gap-3">
+                <button id="confirmLogoutBtn" type="button" style="min-width:5rem; padding:0.75rem 1.25rem; background:#dc2626; color:#ffffff; border:none; border-radius:0.75rem; font-weight:600; cursor:pointer;">Yes</button>
+                <button id="cancelLogoutBtn" type="button" style="min-width:5rem; padding:0.75rem 1.25rem; background:#2563eb; color:#ffffff; border:none; border-radius:0.75rem; font-weight:600; cursor:pointer; margin-left:auto;">No</button>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}
+    {% if user.is_authenticated %}
+    <script>
+        fetch('{% url "notifications_api" %}')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('unread-badge');
+                if (data.unread_count > 0) {
+                    badge.textContent = data.unread_count;
+                    badge.classList.remove('hidden');
+                }
+            });
+    </script>
+    <script>
+        const logoutLink = document.getElementById('logoutLink');
+        const logoutModal = document.getElementById('logoutModal');
+        const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+        const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+        if (logoutLink && logoutModal && confirmLogoutBtn && cancelLogoutBtn) {
+            logoutLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                logoutModal.style.display = 'flex';
+            });
+
+            cancelLogoutBtn.addEventListener('click', function() {
+                logoutModal.style.display = 'none';
+            });
+
+            confirmLogoutBtn.addEventListener('click', function() {
+                window.location = logoutLink.href;
+            });
+
+            logoutModal.addEventListener('click', function(event) {
+                if (event.target === logoutModal) {
+                    logoutModal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    {% endif %}
+    {% endblock %}
+</body>
+</html>

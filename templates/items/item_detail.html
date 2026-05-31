@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} - EcoTrack{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 400px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'item_list' %}" class="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-700 px-4 py-2 text-sm font-semibold shadow-sm hover:bg-emerald-100 hover:text-emerald-900 transition">
+        ← Back to Items
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div>
+        {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="w-full rounded-lg shadow-lg">
+        {% else %}
+            <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span class="text-gray-400 text-lg">No image available</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="space-y-6">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ item.title }}</h1>
+            <div class="flex items-center gap-4">
+                <span class="inline-block px-3 py-1 rounded-full text-sm font-medium
+                    {% if item.status == 'AVAILABLE' %}bg-green-100 text-green-800{% elif item.status == 'PENDING' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ item.get_status_display }}
+                </span>
+                <span class="text-gray-600 text-sm">Posted {{ item.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Description</h2>
+            <p class="text-gray-700 whitespace-pre-wrap">{{ item.description }}</p>
+        </div>
+
+        <div class="bg-gray-100 p-4 rounded-lg">
+            <h2 class="text-lg font-bold text-gray-900 mb-2">Donor Information</h2>
+            <p class="text-gray-700"><strong>Name:</strong> {{ item.donor.username }}</p>
+            {% if item.donor.first_name %}
+                <p class="text-gray-700"><strong>First Name:</strong> {{ item.donor.first_name }}</p>
+            {% endif %}
+            {% if item.address_hint %}
+                <p class="text-gray-700"><strong>Location Hint:</strong> {{ item.address_hint }}</p>
+            {% endif %}
+        </div>
+
+        {% if item.claimant %}
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h2 class="text-lg font-bold text-gray-900 mb-2">Claimed by</h2>
+                <p class="text-gray-700"><strong>User:</strong> {{ item.claimant.username }}</p>
+                <p class="text-gray-600 text-sm mt-2">
+                    {% if item.status == 'PENDING' %}
+                        ⏳ Waiting for donor to confirm...
+                    {% elif item.status == 'COLLECTED' %}
+                        ✅ Claim approved and ready for pickup!
+                    {% endif %}
+                </p>
+                {% if user == item.donor and item.status == 'PENDING' %}
+                    <div class="flex gap-2 mt-4">
+                        <button id="approveBtn" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-bold">✓ Approve</button>
+                        <button id="rejectBtn" class="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition font-bold">✗ Reject</button>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif user.is_authenticated and item.donor != user and item.status == 'AVAILABLE' %}
+            <button id="claimBtn" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-bold text-lg">
+                Claim This Item
+            </button>
+        {% elif user == item.donor %}
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <p class="text-gray-700">This is your item. You cannot claim it.</p>
+            </div>
+        {% else %}
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">
+                <p class="text-blue-900 font-medium">
+                    <a href="{% url 'account_login' %}" class="inline-flex items-center rounded-full bg-sky-100 px-4 py-2 text-sky-700 hover:bg-sky-200 hover:text-sky-900 transition">
+                        Login
+                    </a>
+                    to claim this item
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Location on Map</h2>
+    <div id="map" class="rounded-lg shadow-lg"></div>
+</div>
+
+{% if user.is_authenticated and item.donor != user and item.status == 'AVAILABLE' %}
+<script>
+    const map = L.map('map').setView([{{ item.latitude }}, {{ item.longitude }}], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .openPopup();
+
+    document.getElementById('claimBtn').addEventListener('click', async function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Claiming...';
+
+        try {
+            const response = await fetch('{% url "item_claim_api" item.pk %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert('✓ Item claimed successfully! The donor will be notified.');
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Error: ' + (error.error || 'Unable to claim item'));
+                btn.disabled = false;
+                btn.textContent = 'Claim This Item';
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            btn.disabled = false;
+            btn.textContent = 'Claim This Item';
+        }
+    });
+</script>
+{% elif user == item.donor and item.status == 'PENDING' %}
+<script>
+    const map = L.map('map').setView([{{ item.latitude }}, {{ item.longitude }}], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .openPopup();
+
+    document.getElementById('approveBtn').addEventListener('click', async function() {
+        if (confirm('Approve this claim?')) {
+            try {
+                const response = await fetch('{% url "item_approve_api" item.pk %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (response.ok) {
+                    alert('✓ Claim approved!');
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    });
+
+    document.getElementById('rejectBtn').addEventListener('click', async function() {
+        if (confirm('Reject this claim?')) {
+            try {
+                const response = await fetch('{% url "item_reject_api" item.pk %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (response.ok) {
+                    alert('✓ Claim rejected!');
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    });
+</script>
+{% else %}
+<script>
+    const map = L.map('map').setView([{{ item.latitude }}, {{ item.longitude }}], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .openPopup();
+</script>
+{% endif %}
+
+{% endblock %}
