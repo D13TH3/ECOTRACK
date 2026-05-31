@@ -12,11 +12,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # This robust module communicates cleanly with PythonAnywhere's API engine
-      # It completely handles git pulls, virtualenvs, migrations, and reloads automatically
-      - name: Deploy to PythonAnywhere Webapp Instance
-        uses: amandahla/action-pythonanywhere-deploy@v1.3.0
-        with:
-          username: ${{ secrets.PA_USERNAME }}
-          api_token: ${{ secrets.PA_API_TOKEN }}
-          domain_name: ${{ secrets.PA_DOMAIN }}
+      # 1. Triggers Git Pull using PythonAnywhere's official API
+      - name: Trigger Git Pull on Server
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            -d "command=cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && git pull origin main" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+
+      # 2. Runs internal database updates and compiles Tailwind static styles
+      - name: Run Database Migrations and Collect Static
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            -d "command=source /home/${{ secrets.PA_USERNAME }}/.virtualenvs/ecotrack-env/bin/activate && cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && python manage.py migrate --noinput && python manage.py collectstatic --noinput" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+
+      # 3. Restarts the web application worker instantly
+      - name: Reload PythonAnywhere Webapp
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/"
