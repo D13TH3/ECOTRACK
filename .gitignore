@@ -18,11 +18,12 @@ __pycache__/
 # --- User Media Uploads ---
 media/
 
+
 # --- Static Assets ---
-# This ignores your collected static asset clutter but safely forces 
-# Git to track your required tailwind.config.js configuration file
-static/
-!static/css/tailwind.css
+# This ignores your collected production folder but forces Git to track 
+# your source static assets (including your main Tailwind CSS files)
+staticfiles/
+!static/
 
 # --- Environment Credentials & Configuration Secrets ---
 .env
