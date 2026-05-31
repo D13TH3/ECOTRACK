@@ -1,0 +1,36 @@
+name: Deploy to PythonAnywhere
+
+on:
+  push:
+    branches:
+      - main  # Triggers deployment whenever you push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. This securely triggers a Git Pull inside your PythonAnywhere console
+      - name: Pull latest code on PythonAnywhere
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            -d "command=cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && git pull origin main" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+
+      # 2. This activates your specific ecotrack-env venv, updates requirements, and compiles static assets
+      - name: Update Virtual Environment and Migrate
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            -d "command=source /home/${{ secrets.PA_USERNAME }}/.virtualenvs/ecotrack-env/bin/activate && cd /home/${{ secrets.PA_USERNAME }}/ECOTRACK && pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/consoles/"
+
+      # 3. This securely flushes the server memory and reloads your website
+      - name: Reload the Web App
+        run: |
+          curl -X POST \
+            -H "Authorization: Token ${{ secrets.PA_API_TOKEN }}" \
+            "https://pythonanywhere.com{{ secrets.PA_USERNAME }}/webapps/${{ secrets.PA_DOMAIN }}/reload/"
