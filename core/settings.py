@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'items',
 ]
 
+
 if "pythonanywhere" in socket.gethostname():
  SITE_ID = 2 # production site (ecotrack.pythonanywhere.com)
 else:
