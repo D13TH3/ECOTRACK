@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites', 
+    'django.contrib.sites',
+    'allauth_ui',
+    'slippers', 
+    'widget_tweaks',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -50,7 +53,7 @@ INSTALLED_APPS = [
 ]
 
 if "pythonanywhere" in socket.gethostname():
- SITE_ID = 2 # production site (psusphere.pythonanywhere.com)
+ SITE_ID = 2 # production site (ecotrack.pythonanywhere.com)
 else:
  SITE_ID = 1 # local site (127.0.0.1:8000)
 AUTHENTICATION_BACKENDS = [
@@ -82,6 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
             ],
         },
     },
