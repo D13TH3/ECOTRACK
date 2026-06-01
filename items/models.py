@@ -13,7 +13,8 @@ class Item(models.Model):
     image = models.ImageField(upload_to='items/%m/%d/%Y/')
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    address_hint = models.CharField(max_length=255, blank=True)
+    address = models.CharField(max_length=255, blank=True, default='')
+    contact_number = models.CharField(max_length=20, blank=True, default='')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AVAILABLE')
 
     donor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='donated_items')

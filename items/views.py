@@ -11,6 +11,8 @@ from .models import Item, Notification
 from .serializers import ItemSerializer
 from django.contrib import messages
 from django.http import HttpResponseForbidden
+import requests
+from decimal import Decimal
 
 def get_accept_format(request):
     accept_header = request.META.get('HTTP_ACCEPT', 'text/html')
@@ -21,6 +23,50 @@ def get_accept_format(request):
     if 'application/json' in accept_header:
         return 'json'
     return 'html'
+
+@require_http_methods(["POST"])
+def nominatim_proxy(request):
+    """Server-side proxy for Nominatim reverse geocoding API.
+
+    Handles CORS, firewall restrictions, and custom User-Agent header.
+    Frontend sends latitude and longitude; backend fetches address and returns JSON.
+    """
+    try:
+        lat_str = request.POST.get('latitude', '').strip()
+        lng_str = request.POST.get('longitude', '').strip()
+
+        if not lat_str or not lng_str:
+            return JsonResponse({'error': 'Missing coordinates'}, status=400)
+
+        lat = Decimal(lat_str)
+        lng = Decimal(lng_str)
+
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+            return JsonResponse({'error': 'Invalid coordinate range'}, status=400)
+
+        nominatim_url = f'https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}'
+
+        response = requests.get(
+            nominatim_url,
+            headers={
+                'User-Agent': 'EcoTrack-Marketplace/1.0',
+                'Accept': 'application/json',
+            },
+            timeout=5
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        return JsonResponse(data)
+
+    except requests.exceptions.Timeout:
+        return JsonResponse({'error': 'Nominatim request timeout'}, status=503)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'error': f'Nominatim API error: {str(e)}'}, status=502)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Invalid coordinates format'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def item_list_view(request):
     if get_accept_format(request) == 'json':
@@ -80,18 +126,27 @@ def item_detail_view(request, pk):
 @require_http_methods(["GET", "POST"])
 def item_create_view(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
         image = request.FILES.get('image')
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-        address_hint = request.POST.get('address_hint', '')
+        latitude = request.POST.get('latitude', '').strip()
+        longitude = request.POST.get('longitude', '').strip()
+        address = request.POST.get('address', '').strip()
+        contact_number = request.POST.get('contact_number', '').strip()
 
-        if not all([title, description, image, latitude, longitude]):
-            context = {
-                'error': 'All fields are required.',
-                'form_data': request.POST
-            }
+        if not all([title, description, image]):
+            messages.error(request, 'Title, description, and image are required.')
+            context = {'form_data': request.POST}
+            return render(request, 'items/item_form.html', context, status=400)
+
+        if not latitude or not longitude:
+            messages.error(request, "Please click 'Detect My Current Location' to set your location.")
+            context = {'form_data': request.POST}
+            return render(request, 'items/item_form.html', context, status=400)
+
+        if not address:
+            messages.error(request, "Please provide an address (auto-filled by location detection or enter manually).")
+            context = {'form_data': request.POST}
             return render(request, 'items/item_form.html', context, status=400)
 
         try:
@@ -101,15 +156,14 @@ def item_create_view(request):
                 image=image,
                 latitude=latitude,
                 longitude=longitude,
-                address_hint=address_hint,
+                address=address,
+                contact_number=contact_number,
                 donor=request.user
             )
             return redirect('item_list')
         except Exception as e:
-            context = {
-                'error': f'Error creating item: {str(e)}',
-                'form_data': request.POST
-            }
+            messages.error(request, f'Error creating item: {str(e)}')
+            context = {'form_data': request.POST}
             return render(request, 'items/item_form.html', context, status=400)
 
     return render(request, 'items/item_form.html')

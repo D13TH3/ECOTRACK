@@ -11,8 +11,8 @@ class ItemAdmin(admin.ModelAdmin):
         ('Item Details', {
             'fields': ('title', 'description', 'image')
         }),
-        ('Location', {
-            'fields': ('latitude', 'longitude', 'address_hint')
+        ('Location & Contact', {
+            'fields': ('latitude', 'longitude', 'address', 'contact_number')
         }),
         ('Status & Ownership', {
             'fields': ('status', 'donor', 'claimant')

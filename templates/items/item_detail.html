@@ -53,8 +53,11 @@
             {% if item.donor.first_name %}
                 <p class="text-gray-700"><strong>First Name:</strong> {{ item.donor.first_name }}</p>
             {% endif %}
-            {% if item.address_hint %}
-                <p class="text-gray-700"><strong>Location Hint:</strong> {{ item.address_hint }}</p>
+            {% if item.address %}
+                <p class="text-gray-700"><strong>Location:</strong> {{ item.address }}</p>
+            {% endif %}
+            {% if item.contact_number %}
+                <p class="text-gray-700"><strong>Contact:</strong> {{ item.contact_number }}</p>
             {% endif %}
         </div>
 
@@ -112,7 +115,7 @@
     }).addTo(map);
 
     L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
-        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address }}')
         .openPopup();
 
     document.getElementById('claimBtn').addEventListener('click', async function() {
@@ -156,7 +159,7 @@
     }).addTo(map);
 
     L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
-        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address }}')
         .openPopup();
 
     document.getElementById('approveBtn').addEventListener('click', async function() {
@@ -209,7 +212,7 @@
     }).addTo(map);
 
     L.marker([{{ item.latitude }}, {{ item.longitude }}]).addTo(map)
-        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address_hint }}')
+        .bindPopup('<b>{{ item.title }}</b><br>{{ item.address }}')
         .openPopup();
 </script>
 {% endif %}

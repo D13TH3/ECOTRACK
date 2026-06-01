@@ -16,7 +16,7 @@ class ItemSerializer(serializers.ModelSerializer):
         model = Item
         fields = [
             'id', 'title', 'description', 'image', 'latitude', 'longitude',
-            'address_hint', 'status', 'status_display', 'donor', 'claimant',
+            'address', 'contact_number', 'status', 'status_display', 'donor', 'claimant',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'donor', 'claimant', 'created_at', 'updated_at']

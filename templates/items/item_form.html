@@ -9,10 +9,12 @@
         <p class="text-gray-600">Share an item you want to give away for free. Someone in your community will love it!</p>
     </div>
 
-    {% if error %}
-        <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200">
-            <p class="text-red-700"><strong>Error:</strong> {{ error }}</p>
-        </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-lg {% if message.tags %}{{ message.tags|default:'bg-red-50 border border-red-200' }}{% else %}bg-red-50 border border-red-200{% endif %}">
+                <p class="{% if message.tags and 'success' in message.tags %}text-green-700{% else %}text-red-700{% endif %}"><strong>{{ message }}</strong></p>
+            </div>
+        {% endfor %}
     {% endif %}
 
     <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-lg p-8 space-y-6">
@@ -70,62 +72,40 @@
             <p id="geo-status" class="hidden mt-2 text-sm text-gray-600"></p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label for="latitude" class="block text-sm font-medium text-gray-900 mb-2">
-                    Latitude <span class="text-red-600">*</span>
-                </label>
-                <input
-                    type="number"
-                    id="latitude"
-                    name="latitude"
-                    step="0.000001"
-                    required
-                    value="{{ form_data.latitude|default:'' }}"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="e.g., 40.7128"
-                >
-                <p class="text-gray-600 text-xs mt-1">Use decimal format (e.g., 40.7128)</p>
-            </div>
-
-            <div>
-                <label for="longitude" class="block text-sm font-medium text-gray-900 mb-2">
-                    Longitude <span class="text-red-600">*</span>
-                </label>
-                <input
-                    type="number"
-                    id="longitude"
-                    name="longitude"
-                    step="0.000001"
-                    required
-                    value="{{ form_data.longitude|default:'' }}"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                    placeholder="e.g., -74.0060"
-                >
-                <p class="text-gray-600 text-xs mt-1">Use decimal format (e.g., -74.0060)</p>
-            </div>
-        </div>
+        <input type="hidden" id="latitude" name="latitude" value="{{ form_data.latitude|default:'' }}">
+        <input type="hidden" id="longitude" name="longitude" value="{{ form_data.longitude|default:'' }}">
 
         <div>
-            <label for="address_hint" class="block text-sm font-medium text-gray-900 mb-2">
-                Address Hint <span class="text-gray-500">(Optional)</span>
+            <label for="address" class="block text-sm font-medium text-gray-900 mb-2">
+                Address <span class="text-red-600">*</span>
             </label>
             <input
                 type="text"
-                id="address_hint"
-                name="address_hint"
+                id="address"
+                name="address"
                 maxlength="255"
-                value="{{ form_data.address_hint|default:'' }}"
+                required
+                value="{{ form_data.address|default:'' }}"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                placeholder="e.g., Downtown area near Central Park"
+                placeholder="Your location (auto-filled)"
             >
-            <p class="text-gray-600 text-sm mt-1">Add a neighborhood or landmark for easier identification. This is not your exact address.</p>
+            <p class="text-gray-600 text-sm mt-1">Your approximate area</p>
         </div>
 
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-blue-900 text-sm">
-                <strong>📍 Tip:</strong> To find coordinates, search your location on Google Maps, right-click, and select the coordinates at the top.
-            </p>
+        <div>
+            <label for="contact_number" class="block text-sm font-medium text-gray-900 mb-2">
+                Contact Number <span class="text-gray-500">(Optional)</span>
+            </label>
+            <input
+                type="tel"
+                id="contact_number"
+                name="contact_number"
+                maxlength="20"
+                value="{{ form_data.contact_number|default:'' }}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                placeholder="e.g., +1 (555) 123-4567 or 555-123-4567"
+            >
+            <p class="text-gray-600 text-sm mt-1">Provide a phone number for interested collector to reach you</p>
         </div>
 
         <div class="flex gap-4 pt-4">
@@ -150,9 +130,9 @@
 <script>
     const geoBtn = document.getElementById('geo-btn');
     const geoStatus = document.getElementById('geo-status');
-    const latInput = document.getElementById('id_latitude');
-    const lngInput = document.getElementById('id_longitude');
-    const addressInput = document.getElementById('id_address_hint');
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+    const addressInput = document.getElementById('address');
 
     geoBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -185,12 +165,16 @@
     });
 
     function fetchReverseGeocode(lat, lng) {
-        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        const formData = new FormData();
+        formData.append('latitude', lat);
+        formData.append('longitude', lng);
 
-        fetch(nominatimUrl, {
+        fetch('/items/api/geocode/', {
+            method: 'POST',
             headers: {
-                'Accept': 'application/json',
-            }
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -210,7 +194,7 @@
                 addressInput.value = address;
                 geoStatus.textContent = `✅ Location updated: "${address}"`;
             } else {
-                geoStatus.textContent = `✅ Coordinates set. Manual address entry needed.`;
+                geoStatus.textContent = `✅ Coordinates set. Please enter your address manually.`;
             }
 
             geoBtn.disabled = false;
@@ -224,10 +208,19 @@
         });
     }
 
-    function showGeoError(message) {
-        geoStatus.textContent = `❌ ${message}`;
-        geoBtn.disabled = false;
-        geoBtn.textContent = '📍 Detect My Current Location';
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 </script>
 {% endblock %}
