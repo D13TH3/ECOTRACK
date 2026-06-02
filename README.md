@@ -1,7 +1,7 @@
 # EcoTrack
 
 A community recycling and upcycling marketplace built with Django — share, claim, and coordinate free items in your neighborhood.
-
+ 
 ## Features
 
 - Browse and post free items with images and location
