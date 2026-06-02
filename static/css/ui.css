@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root{
+  --bg: #f8fafc;
+  --muted: #6b7280;
+  --accent: #059669; /* green-600 */
+  --accent-600: #047857;
+  --brand: #064e3b;
+  --primary: #0ea5a4; /* teal-ish */
+  --card: #ffffff;
+  --glass: rgba(255,255,255,0.6);
+  --radius: 0.75rem;
+}
+
+html,body{height:100%;}
+body{font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:#0f172a; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+
+/* Layout container tweaks (Tailwind containers remain) */
+.max-w-7xl{max-width:1100px}
+
+/* Headings and text */
+h1,h2,h3{color:var(--brand)}
+p,li,span,a{color:var(--muted)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .9rem;border-radius:999px;font-weight:600;cursor:pointer;border:1px solid transparent;text-decoration:none}
+.btn:focus{outline:2px solid rgba(6,95,70,0.12);outline-offset:2px}
+.btn-primary{background:var(--primary);color:white}
+.btn-primary:hover{background:var(--accent)}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-danger{background:#dc2626;color:white}
+.btn-pill{border-radius:999px}
+
+/* Navbar/sticky */
+nav.bg-white{background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(249,250,251,0.95));backdrop-filter:saturate(140%) blur(4px)}
+.site-brand{display:flex;align-items:center;gap:.5rem;font-weight:800;color:var(--accent)}
+.site-brand .logo-emoji{font-size:1.5rem}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 24px rgba(15,23,42,0.06);padding:1rem}
+
+/* Messages */
+.messages .message{padding:.9rem;border-radius:.5rem;background:#e6f4ff;color:#0369a1}
+
+/* Footer */
+footer.bg-gray-800{background:linear-gradient(180deg,#0f172a,#111827);color:#cbd5e1}
+footer a{color:inherit}
+
+/* Modal */
+.modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.6);align-items:center;justify-content:center;padding:1.25rem}
+.modal.show{display:flex}
+.modal-panel{background:var(--card);border-radius:1rem;box-shadow:0 24px 80px rgba(15,23,42,0.18);max-width:28rem;width:100%;padding:1.5rem}
+.modal-title{font-size:1.25rem;font-weight:700;color:#0f172a}
+.modal-body{color:#475569;margin-top:0.75rem}
+.modal-actions{margin-top:1.25rem;display:flex;gap:.75rem;align-items:center}
+
+/* Small responsive tweaks */
+@media (max-width:640px){
+  .max-w-7xl{padding-left:1rem;padding-right:1rem}
+  .site-brand .brand-text{font-size:1.125rem}
+}
+
+/* Small utility overrides to make Tailwind buttons crisp */
+.rounded-full{border-radius:999px}
+.transition{transition:all .18s ease}

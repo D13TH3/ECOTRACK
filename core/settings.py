@@ -39,9 +39,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'allauth_ui',
-    'slippers', 
-    'widget_tweaks',
+]
+
+# Optional third-party apps: include only if available in the environment.
+try:
+    import importlib.util
+    optional_apps = ['allauth_ui', 'slippers', 'widget_tweaks']
+    for app in optional_apps:
+        if importlib.util.find_spec(app) is not None:
+            INSTALLED_APPS.append(app)
+        else:
+            print(f'warning: optional app {app} not installed; skipping')
+except Exception:
+    # If importlib isn't available for some reason, continue without optional apps.
+    pass
+
+INSTALLED_APPS += [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
