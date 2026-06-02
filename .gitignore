@@ -6,17 +6,14 @@ pyvenv.cfg
 .venv/
 venv/
 
-# --- Local Databases ---
-*.sqlite3
-db.sqlite3
+
 
 # --- Python System Caches & Compiled Code ---
 __pycache__/
 *.py[cod]
 *$py.class
 
-# --- User Media Uploads ---
-media/
+
 
 
 # --- Static Assets ---
