@@ -1,5 +1,19 @@
 from django.contrib import admin
-from .models import Item, Notification
+from .models import Item, Notification, UserProfile
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'gender', 'contact_number']
+    search_fields = ['user__username', 'contact_number']
+    fieldsets = (
+        ('User', {
+            'fields': ('user',)
+        }),
+        ('Profile Details', {
+            'fields': ('picture', 'gender', 'contact_number')
+        }),
+    )
+
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):

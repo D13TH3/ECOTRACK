@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated
-from .models import Item, Notification
+from .models import Item, Notification, UserProfile
 from .serializers import ItemSerializer
 from django.contrib import messages
 from django.http import HttpResponseForbidden
@@ -105,6 +105,9 @@ def item_delete_view(request, pk):
         return HttpResponseForbidden('You are not allowed to delete this item.')
 
     try:
+        # Delete the image file from storage before removing the database record
+        if item.image:
+            item.image.delete(save=False)
         item.delete()
         messages.success(request, 'Item deleted successfully.')
     except Exception as e:
@@ -317,3 +320,59 @@ class MarkNotificationReadAPIView(APIView):
         notification.is_read = True
         notification.save()
         return Response({'status': 'marked as read'}, status=HTTP_200_OK)
+
+
+class ProfileUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            profile = UserProfile.objects.create(user=request.user)
+
+        # Update fields
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        gender = request.POST.get('gender', 'P').strip()
+        contact_number = request.POST.get('contact_number', '').strip()
+        picture = request.FILES.get('picture')
+
+        # Update username on User model
+        if username and username != request.user.username:
+            if len(username) < 3:
+                return Response({
+                    'success': False,
+                    'error': 'Username must be at least 3 characters.',
+                }, status=HTTP_400_BAD_REQUEST)
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exclude(pk=request.user.pk).exists():
+                return Response({
+                    'success': False,
+                    'error': 'Username already taken.',
+                }, status=HTTP_400_BAD_REQUEST)
+            request.user.username = username
+            request.user.save()
+
+        # Update email on User model
+        if email:
+            request.user.email = email
+            request.user.save()
+
+        # Update profile fields
+        profile.gender = gender
+        profile.contact_number = contact_number
+
+        if picture:
+            # Delete the old picture file before assigning the new one
+            if profile.picture:
+                profile.picture.delete(save=False)
+            profile.picture = picture
+
+        profile.save()
+
+        return Response({
+            'success': True,
+            'picture_url': profile.picture_url if profile.picture else None,
+            'username': request.user.username,
+        }, status=HTTP_200_OK)

@@ -1,4 +1,5 @@
 {% load static %}
+{% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,7 @@
     <title>{% block title %}EcoTrack - Community Recycling Marketplace{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'dist/output.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui.css' %}">
+    {% progressive_web_app_meta %}
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
@@ -19,10 +21,22 @@
                         <span class="brand-text">EcoTrack</span>
                     </a>
                 </div>
-                <div class="flex gap-4 items-center">
+
+                <!-- Mobile menu button (visible only on small screens) -->
+                <button id="mobileMenuBtn" type="button" class="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none" aria-label="Toggle menu">
+                    <svg id="menuIconOpen" class="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg id="menuIconClose" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <!-- Desktop nav (hidden on mobile) -->
+                <div id="desktopNav" class="hidden lg:flex gap-4 items-center">
                     {% url 'item_list' as item_list_url %}
                     {% url 'account_login' as account_login_url %}
-                    <a href="{{ item_list_url }}" class="btn px-4 py-2 rounded-full font-semibold transition {% if request.path == item_list_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                    <a href="{{ item_list_url }}" class="btn px-4 py-2 rounded-full font-semibold transition duration-200 {% if request.path == item_list_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
                         Browse Items
                     </a>
                     {% if user.is_authenticated %}
@@ -30,34 +44,74 @@
                             + Post Item
                         </a>
                         {% url 'dashboard' as dashboard_url %}
-                        <a href="{{ dashboard_url }}" class="btn px-4 py-2 rounded-full font-semibold transition {% if request.path == dashboard_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                        <a href="{{ dashboard_url }}" class="btn px-4 py-2 rounded-full font-semibold transition duration-200 {% if request.path == dashboard_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
                             📊 Dashboard
                         </a>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-gray-600">
-                            👤 {{ user.username }}
+                        <button id="profileTrigger" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-gray-600 hover:bg-gray-100 transition duration-200 cursor-pointer">
+                            <span id="navbarProfilePic" class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm font-bold overflow-hidden">
+                                {% if user_profile and user_profile.picture %}
+                                    <img src="{{ user_profile.picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover" />
+                                {% else %}
+                                    {{ user.username|make_list|first|upper }}
+                                {% endif %}
+                            </span>
+                            <span>{{ user.username }}</span>
                             <span id="unread-badge" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden"></span>
-                        </span>
-                        {% if user.is_superuser %}
+                        </button>
+                        {% if user.is_superuser or user.is_staff %}
                             <a href="/admin/" class="text-gray-600 hover:text-gray-900">
                                 Admin
                             </a>
                         {% endif %}
-                        <!-- FIXED: Switched to Allauth's dynamic URL logout tag to prevent session state locks -->
                         <a id="logoutLink" href="{% url 'account_logout' %}" class="btn text-red-600 hover:text-red-900 text-sm font-medium">
                             Logout
                         </a>
                     {% else %}
-                        <!-- FIXED: Redirects to your gorgeous new custom login screen instead of the blank admin panel -->
-                        <a href="{{ account_login_url }}" class="btn px-4 py-2 rounded-full font-semibold transition {% if request.path == account_login_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
+                        <a href="{{ account_login_url }}" class="btn px-4 py-2 rounded-full font-semibold transition duration-200 {% if request.path == account_login_url %}bg-blue-600 text-white{% else %}text-gray-600 hover:text-gray-900 hover:bg-blue-50{% endif %}">
                             Login
                         </a>
                     {% endif %}
                 </div>
             </div>
         </div>
+
+        <!-- Mobile menu (hidden by default, slides down) -->
+        <div id="mobileMenu" class="hidden border-t border-gray-200">
+            <div class="px-4 py-3 space-y-1">
+                {% url 'item_list' as item_list_url %}
+                <a href="{{ item_list_url }}" class="block px-3 py-2 rounded-md text-base font-medium {% if request.path == item_list_url %}bg-blue-50 text-blue-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                    Browse Items
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'item_create' %}" class="block px-3 py-2 rounded-md text-base font-medium bg-green-50 text-green-700">
+                        + Post Item
+                    </a>
+                    {% url 'dashboard' as dashboard_url %}
+                    <a href="{{ dashboard_url }}" class="block px-3 py-2 rounded-md text-base font-medium {% if request.path == dashboard_url %}bg-blue-50 text-blue-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                        📊 Dashboard
+                    </a>
+                    <a id="mobileProfileBtn" href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-100">
+                        👤 My Profile
+                    </a>
+                    {% if user.is_superuser or user.is_staff %}
+                        <a href="/admin/" class="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-gray-100">
+                            Admin
+                        </a>
+                    {% endif %}
+                    <a id="mobileLogoutLink" href="{% url 'account_logout' %}" class="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50">
+                        Logout
+                    </a>
+                {% else %}
+                    {% url 'account_login' as account_login_url %}
+                    <a href="{{ account_login_url }}" class="block px-3 py-2 rounded-md text-base font-medium {% if request.path == account_login_url %}bg-blue-50 text-blue-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+                        Login
+                    </a>
+                {% endif %}
+            </div>
+        </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+<main class="animate-fade-in max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
         {% if messages %}
             <div class="messages">
             {% for message in messages %}
@@ -86,7 +140,7 @@
                         <li><a href="{% url 'item_list' %}" class="hover:text-white">Browse Items</a></li>
                         {% if user.is_authenticated %}
                             <li><a href="{% url 'item_create' %}" class="hover:text-white">Post Item</a></li>
-                            {% if user.is_superuser %}
+                            {% if user.is_superuser or user.is_staff %}
                                 <li><a href="/admin/" class="hover:text-white">Admin</a></li>
                             {% endif %}
                         {% endif %}
@@ -116,6 +170,99 @@
         </div>
     </div>
 
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal" aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" style="max-width: 32rem; width: calc(100% - 2rem);">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="profileModalTitle" class="text-xl font-bold text-gray-900">My Profile</h2>
+                <button id="closeProfileModalBtn" type="button" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="profileForm" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <!-- Profile Picture Upload -->
+                <div class="flex flex-col items-center">
+                    <div class="relative group">
+                        <div id="profilePicPreview" class="w-28 h-28 rounded-full bg-purple-100 border-4 border-purple-200 flex items-center justify-center overflow-hidden transition-all duration-300">
+                            {% if user_profile and user_profile.picture %}
+                                <img src="{{ user_profile.picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover" />
+                            {% else %}
+                                <span id="profileInitialDisplay" class="text-4xl font-bold text-purple-600">{{ user.username|make_list|first|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <!-- Camera Button Overlay -->
+                        <label for="id_picture" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-full cursor-pointer transition-all duration-300">
+                            <div class="bg-green-500 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100 shadow-lg hover:bg-green-600">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                        </label>
+                        <input type="file" id="id_picture" name="picture" accept="image/*" capture="user" class="hidden" />
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">Tap image to take photo or upload</p>
+                </div>
+
+                <!-- User Info Display -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="id_username" class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
+                        <input type="text" id="id_username" name="username" value="{{ user.username }}" minlength="3" maxlength="150" placeholder="Enter your username" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all" />
+                    </div>
+
+                    <div>
+                        <label for="id_email" class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                        <input type="email" id="id_email" name="email" value="{{ user.email|default:'' }}" placeholder="Enter your email" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all" />
+                    </div>
+
+                    {% if user_profile %}
+                    <div>
+                        <label for="id_gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
+                        <select id="id_gender" name="gender" class="w-full px-4 py-2 rounded-full border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all bg-white">
+                            <option value="P" {% if user_profile.gender == 'P' %}selected{% endif %}>Prefer not to say</option>
+                            <option value="M" {% if user_profile.gender == 'M' %}selected{% endif %}>Male</option>
+                            <option value="F" {% if user_profile.gender == 'F' %}selected{% endif %}>Female</option>
+                            <option value="O" {% if user_profile.gender == 'O' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+<div>
+                        <label for="id_contact_number" class="block text-sm font-semibold text-gray-700 mb-1">Contact Number</label>
+                        <input
+                            type="tel"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            id="id_contact_number"
+                            name="contact_number"
+                            value="{{ user_profile.contact_number|default:'' }}"
+                            placeholder="Enter your contact number"
+                            class="w-full px-4 py-2 rounded-full border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
+                        />
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div id="profileFormMessages" class="hidden"></div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" id="saveProfileBtn" class="flex-1 px-6 py-3 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 transition-all">
+                        Save Changes
+                    </button>
+                    <button type="button" id="cancelProfileBtn" class="px-6 py-3 rounded-full border border-gray-300 text-gray-600 font-semibold hover:bg-gray-50 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     
     {% block extra_js %}
     {% if user.is_authenticated %}
@@ -131,6 +278,51 @@
             });
     </script>
     <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIconOpen = document.getElementById('menuIconOpen');
+        const menuIconClose = document.getElementById('menuIconClose');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function() {
+                const isOpen = !mobileMenu.classList.contains('hidden');
+                mobileMenu.classList.toggle('hidden');
+                menuIconOpen.classList.toggle('hidden');
+                menuIconClose.classList.toggle('hidden');
+                mobileMenuBtn.setAttribute('aria-expanded', !isOpen);
+            });
+
+            // Mobile profile button opens the profile modal
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const profileModal = document.getElementById('profileModal');
+            if (mobileProfileBtn && profileModal) {
+                mobileProfileBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    profileModal.classList.add('show');
+                    // Close mobile menu
+                    mobileMenu.classList.add('hidden');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                });
+            }
+
+            // Mobile logout link
+            const mobileLogoutLink = document.getElementById('mobileLogoutLink');
+            const logoutModal = document.getElementById('logoutModal');
+            const logoutLink = document.getElementById('logoutLink');
+            if (mobileLogoutLink && logoutModal && logoutLink) {
+                mobileLogoutLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    mobileMenu.classList.add('hidden');
+                    menuIconOpen.classList.remove('hidden');
+                    menuIconClose.classList.add('hidden');
+                    logoutModal.classList.add('show');
+                });
+            }
+        }
+    </script>
+    <script>
         const logoutLink = document.getElementById('logoutLink');
         const logoutModal = document.getElementById('logoutModal');
         const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
@@ -139,11 +331,11 @@
         if (logoutLink && logoutModal && confirmLogoutBtn && cancelLogoutBtn) {
             logoutLink.addEventListener('click', function(event) {
                 event.preventDefault();
-                logoutModal.style.display = 'flex';
+                logoutModal.classList.add('show');
             });
 
             cancelLogoutBtn.addEventListener('click', function() {
-                logoutModal.style.display = 'none';
+                logoutModal.classList.remove('show');
             });
 
             confirmLogoutBtn.addEventListener('click', function() {
@@ -152,8 +344,116 @@
 
             logoutModal.addEventListener('click', function(event) {
                 if (event.target === logoutModal) {
-                    logoutModal.style.display = 'none';
+                    logoutModal.classList.remove('show');
                 }
+            });
+        }
+
+        // Profile Modal Logic
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileModal = document.getElementById('profileModal');
+        const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
+        const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+        const profileForm = document.getElementById('profileForm');
+        const profilePicInput = document.getElementById('id_picture');
+        const profilePicPreview = document.getElementById('profilePicPreview');
+        const navbarProfilePic = document.getElementById('navbarProfilePic');
+        const profileFormMessages = document.getElementById('profileFormMessages');
+
+        if (profileTrigger && profileModal) {
+            profileTrigger.addEventListener('click', function() {
+                profileModal.classList.add('show');
+            });
+
+            closeProfileModalBtn.addEventListener('click', function() {
+                profileModal.classList.remove('show');
+            });
+
+            cancelProfileBtn.addEventListener('click', function() {
+                profileModal.classList.remove('show');
+            });
+
+            profileModal.addEventListener('click', function(event) {
+                if (event.target === profileModal) {
+                    profileModal.classList.remove('show');
+                }
+            });
+        }
+
+        // Profile picture preview on file select
+        if (profilePicInput && profilePicPreview) {
+            profilePicInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePicPreview.innerHTML = '<img src="' + e.target.result + '" alt="Profile Preview" class="w-full h-full object-cover" />';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Profile form submission
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const saveBtn = document.getElementById('saveProfileBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+
+                const formData = new FormData(profileForm);
+                const csrfToken = profileForm.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                fetch('{% url "profile_update_api" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        profileFormMessages.className = 'p-4 rounded-lg bg-green-100 text-green-700';
+                        profileFormMessages.textContent = 'Profile updated successfully!';
+                        profileFormMessages.classList.remove('hidden');
+
+                        // Update navbar profile pic if new picture was uploaded
+                        if (data.picture_url) {
+                            navbarProfilePic.innerHTML = '<img src="' + data.picture_url + '" alt="' + data.username + '" class="w-full h-full object-cover" />';
+                        }
+
+                        // Update navbar username if changed
+                        const navbarUsername = profileTrigger.querySelector('span:last-of-type');
+                        if (navbarUsername && data.username) {
+                            navbarUsername.textContent = data.username;
+                        }
+
+                        // Auto-close modal after 1.5 seconds with smooth animation
+                        setTimeout(() => {
+                            profileModal.classList.remove('show');
+                            profileFormMessages.classList.add('hidden');
+                            profileForm.reset();
+                            saveBtn.disabled = false;
+                            saveBtn.textContent = 'Save Changes';
+                        }, 1500);
+                    } else {
+                        profileFormMessages.className = 'p-4 rounded-lg bg-red-100 text-red-700';
+                        profileFormMessages.textContent = data.error || 'Error updating profile.';
+                        profileFormMessages.classList.remove('hidden');
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save Changes';
+                    }
+                })
+                .catch(error => {
+                    profileFormMessages.className = 'p-4 rounded-lg bg-red-100 text-red-700';
+                    profileFormMessages.textContent = 'Network error. Please try again.';
+                    profileFormMessages.classList.remove('hidden');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Changes';
+                });
             });
         }
     </script>

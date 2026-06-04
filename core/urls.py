@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('pwa.urls')),
     path('accounts/', include('allauth.urls')), 
     # Serve `/home/` using the home view and make `/` redirect to `/home/`
     path('home/', item_views.home_view, name='home'),

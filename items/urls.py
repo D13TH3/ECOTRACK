@@ -13,4 +13,5 @@ urlpatterns = [
     path('dashboard/', views.user_dashboard_view, name='dashboard'),
     path('api/notifications/', views.UserNotificationsAPIView.as_view(), name='notifications_api'),
     path('api/notifications/<int:notification_id>/read/', views.MarkNotificationReadAPIView.as_view(), name='mark_notification_read_api'),
+    path('api/profile/', views.ProfileUpdateAPIView.as_view(), name='profile_update_api'),
 ]

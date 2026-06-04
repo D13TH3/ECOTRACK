@@ -3,8 +3,23 @@ from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-from .models import Notification
+from .models import Notification, UserProfile
 from django.contrib.auth.signals import user_logged_out
+from django.contrib.auth.models import User
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Auto-create a UserProfile whenever a new User is created."""
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Save the UserProfile whenever the User is saved."""
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
 
 
 @receiver(user_logged_out)

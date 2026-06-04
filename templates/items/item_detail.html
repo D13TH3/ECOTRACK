@@ -9,6 +9,11 @@
         #map {
             height: 400px;
         }
+        @media (max-width: 640px) {
+            #map {
+                height: 280px;
+            }
+        }
     </style>
 {% endblock %}
 
@@ -22,10 +27,10 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <div>
         {% if item.image %}
-            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="w-full rounded-lg shadow-lg">
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg">
         {% else %}
-            <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span class="text-gray-400 text-lg">No image available</span>
+            <div class="w-full h-64 md:h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span class="text-gray-500 text-lg">No image available</span>
             </div>
         {% endif %}
     </div>
@@ -38,34 +43,34 @@
                     {% if item.status == 'AVAILABLE' %}bg-green-100 text-green-800{% elif item.status == 'PENDING' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
                     {{ item.get_status_display }}
                 </span>
-                <span class="text-gray-600 text-sm">Posted {{ item.created_at|date:"M d, Y" }}</span>
+                <span class="text-gray-700 text-sm">Posted {{ item.created_at|date:"M d, Y" }}</span>
             </div>
         </div>
 
         <div>
             <h2 class="text-lg font-bold text-gray-900 mb-2">Description</h2>
-            <p class="text-gray-700 whitespace-pre-wrap">{{ item.description }}</p>
+            <p class="text-gray-900 whitespace-pre-wrap">{{ item.description }}</p>
         </div>
 
         <div class="bg-gray-100 p-4 rounded-lg">
             <h2 class="text-lg font-bold text-gray-900 mb-2">Donor Information</h2>
-            <p class="text-gray-700"><strong>Name:</strong> {{ item.donor.username }}</p>
+            <p class="text-gray-900"><strong>Name:</strong> {{ item.donor.username }}</p>
             {% if item.donor.first_name %}
-                <p class="text-gray-700"><strong>First Name:</strong> {{ item.donor.first_name }}</p>
+                <p class="text-gray-900"><strong>First Name:</strong> {{ item.donor.first_name }}</p>
             {% endif %}
             {% if item.address %}
-                <p class="text-gray-700"><strong>Location:</strong> {{ item.address }}</p>
+                <p class="text-gray-900"><strong>Location:</strong> {{ item.address }}</p>
             {% endif %}
             {% if item.contact_number %}
-                <p class="text-gray-700"><strong>Contact:</strong> {{ item.contact_number }}</p>
+                <p class="text-gray-900"><strong>Contact:</strong> {{ item.contact_number }}</p>
             {% endif %}
         </div>
 
         {% if item.claimant %}
             <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                 <h2 class="text-lg font-bold text-gray-900 mb-2">Claimed by</h2>
-                <p class="text-gray-700"><strong>User:</strong> {{ item.claimant.username }}</p>
-                <p class="text-gray-600 text-sm mt-2">
+                <p class="text-gray-900"><strong>User:</strong> {{ item.claimant.username }}</p>
+                <p class="text-gray-800 text-sm mt-2">
                     {% if item.status == 'PENDING' %}
                         ⏳ Waiting for donor to confirm...
                     {% elif item.status == 'COLLECTED' %}
@@ -85,7 +90,7 @@
             </button>
         {% elif user == item.donor %}
             <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <p class="text-gray-700">This is your item. You cannot claim it.</p>
+                <p class="text-gray-900">This is your item. You cannot claim it.</p>
             </div>
         {% else %}
             <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg text-center">

@@ -1,6 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+class UserProfile(models.Model):
+    """Extended user profile with additional fields."""
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('P', 'Prefer not to say'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, default='P')
+    contact_number = models.CharField(max_length=20, blank=True, default='')
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+    @property
+    def picture_url(self):
+        if self.picture and hasattr(self.picture, 'url'):
+            return self.picture.url
+        return None
+
+
 class Item(models.Model):
     STATUS_CHOICES = [
         ('AVAILABLE', 'Available'),

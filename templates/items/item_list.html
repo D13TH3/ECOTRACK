@@ -9,10 +9,10 @@
 </div>
 
 {% if items %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for item in items %}
             {% if item.status == 'AVAILABLE' %}
-                <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+                <div class="bg-white rounded-lg shadow hover:shadow-lg transition duration-300 ease-out overflow-hidden animate-fade-in-up">
                     {% if item.image %}
                         <img src="{{ item.image.url }}" alt="{{ item.title }}" class="w-full h-48 object-cover">
                     {% else %}
@@ -24,11 +24,11 @@
                     <div class="p-4">
                         <h2 class="text-xl font-bold text-gray-900 mb-2">{{ item.title }}</h2>
 
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+                        <p class="text-gray-800 text-sm mb-3 line-clamp-2">
                             {{ item.description }}
                         </p>
 
-                        <div class="mb-4 space-y-1 text-sm text-gray-600">
+                        <div class="mb-4 space-y-1 text-sm text-gray-700">
                             <p><strong>Donor:</strong> {{ item.donor.username }}</p>
                             {% if item.address_hint %}
                                 <p><strong>Location:</strong> {{ item.address_hint }}</p>
@@ -36,7 +36,7 @@
                             <p><strong>Posted:</strong> {{ item.created_at|date:"M d, Y" }}</p>
                         </div>
 
-                        <a href="{% url 'item_detail' item.pk %}" class="w-full block text-center bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-medium">
+                        <a href="{% url 'item_detail' item.pk %}" class="w-full block text-center bg-green-600 text-white py-2 rounded hover:bg-green-700 transition duration-300 ease-out font-medium">
                             View Details
                         </a>
                     </div>
@@ -46,9 +46,9 @@
     </div>
 {% else %}
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-        <p class="text-gray-600 text-lg mb-4">No items available at the moment.</p>
+        <p class="text-gray-800 text-lg mb-4">No items available at the moment.</p>
         {% if user.is_authenticated %}
-            <a href="{% url 'item_create' %}" class="inline-block bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+            <a href="{% url 'item_create' %}" class="inline-block bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition duration-300 ease-out font-medium">
                 Be the first to post an item!
             </a>
         {% else %}

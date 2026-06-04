@@ -20,7 +20,7 @@ body{font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvet
 
 /* Headings and text */
 h1,h2,h3{color:var(--brand)}
-p,li,span,a{color:var(--muted)}
+p,li,span,a{color:#1e293b} /* high-contrast near-black on white */
 
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem .9rem;border-radius:999px;font-weight:600;cursor:pointer;border:1px solid transparent;text-decoration:none}
@@ -44,15 +44,53 @@ nav.bg-white{background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(249
 
 /* Footer */
 footer.bg-gray-800{background:linear-gradient(180deg,#0f172a,#111827);color:#cbd5e1}
-footer a{color:inherit}
+footer a{color:#e2e8f0}
+/* Footer column titles - vibrant green for maximum contrast on dark bg */
+footer h3{color:#2ecc71!important}
+/* Footer descriptions and copyright - pure white */
+footer.bg-gray-800 p{color:#ffffff}
 
-/* Modal */
-.modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.6);align-items:center;justify-content:center;padding:1.25rem}
-.modal.show{display:flex}
-.modal-panel{background:var(--card);border-radius:1rem;box-shadow:0 24px 80px rgba(15,23,42,0.18);max-width:28rem;width:100%;padding:1.5rem}
+/* Modal (transition-friendly: do not toggle display) */
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:rgba(2,6,23,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.25rem;
+
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+
+  transition:opacity 300ms ease-out, visibility 300ms ease-out;
+}
+.modal.show{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+
+.modal-panel{
+  background:var(--card);
+  border-radius:1rem;
+  box-shadow:0 24px 80px rgba(15,23,42,0.18);
+  max-width:28rem;
+  width:100%;
+  padding:1.5rem;
+
+  transform:translateY(10px);
+  transition:transform 300ms ease-out;
+}
+.modal.show .modal-panel{
+  transform:translateY(0);
+}
 .modal-title{font-size:1.25rem;font-weight:700;color:#0f172a}
 .modal-body{color:#475569;margin-top:0.75rem}
 .modal-actions{margin-top:1.25rem;display:flex;gap:.75rem;align-items:center}
+
 
 /* Small responsive tweaks */
 @media (max-width:640px){
@@ -60,6 +98,81 @@ footer a{color:inherit}
   .site-brand .brand-text{font-size:1.125rem}
 }
 
-/* Small utility overrides to make Tailwind buttons crisp */
-.rounded-full{border-radius:999px}
-.transition{transition:all .18s ease}
+/* Animated tab panels (no display toggling) */
+.tab-panel{
+  opacity:0;
+  transform:translateY(6px);
+  pointer-events:none;
+  transition:opacity 250ms ease-out, transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tab-panel.tab-panel-show{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+
+/* Staggered animation delays for cards */
+.animate-stagger-1{animation-delay:0ms}
+.animate-stagger-2{animation-delay:50ms}
+.animate-stagger-3{animation-delay:100ms}
+.animate-stagger-4{animation-delay:150ms}
+.animate-stagger-5{animation-delay:200ms}
+.animate-stagger-6{animation-delay:250ms}
+.animate-stagger-7{animation-delay:300ms}
+.animate-stagger-8{animation-delay:350ms}
+
+
+/* Hide scrollbar but keep functionality (for tab scroll on mobile) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Dashboard layout */
+.dashboard-wrapper{max-width:1200px;margin:0 auto;display:flex!important;gap:30px;align-items:flex-start!important}
+.dashboard-sidebar{flex:0 0 25%;align-self:flex-start!important}
+.dashboard-main{flex:1;min-width:0}
+
+/* Dashboard item cards — aggressive height reset */
+.dashboard-card{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  padding:16px 20px!important;
+  margin-bottom:20px;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+}
+/* Strip any inherited heights from inner card elements */
+.dashboard-card div,
+.dashboard-card p{
+  margin:0!important;
+  padding:0!important;
+  height:auto!important;
+}
+
+/* Tab content — prevent vertical stretch, let cards sit naturally */
+.tab-content{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:stretch!important;
+}
+
+@media (max-width:1024px){
+  .dashboard-wrapper{display:block!important}
+  .dashboard-sidebar{width:100%}
+}
+
+/* Set animation play state for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
