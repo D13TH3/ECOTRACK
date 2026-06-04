@@ -7,6 +7,7 @@ Django==5.2.14
 django-allauth==65.17.0
 django-allauth-ui==1.8.1
 django-cors-headers==4.9.0
+django-pwa==2.0.1
 django-widget-tweaks==1.5.1
 djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
