@@ -294,7 +294,8 @@
         if (mobileProfileBtn && mobileProfileModal && mobileMenu && menuIconOpen && menuIconClose) {
             mobileProfileBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                profileModal.classList.add('show');
+                e.stopPropagation();
+                mobileProfileModal.classList.add('show');
                 mobileMenu.classList.add('hidden');
                 menuIconOpen.classList.remove('hidden');
                 menuIconClose.classList.add('hidden');
@@ -306,6 +307,7 @@
         if (mobileLogoutLink && logoutModal && mobileMenu && menuIconOpen && menuIconClose) {
             mobileLogoutLink.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 mobileMenu.classList.add('hidden');
                 menuIconOpen.classList.remove('hidden');
                 menuIconClose.classList.add('hidden');
@@ -329,27 +331,32 @@
 
     <script>
         const logoutLink = document.getElementById('logoutLink');
-        const logoutModal = document.getElementById('logoutModal');
+        const logoutModalEl = document.getElementById('logoutModal');
         const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
         const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
 
-        if (logoutLink && logoutModal && confirmLogoutBtn && cancelLogoutBtn) {
+        if (logoutLink && logoutModalEl && confirmLogoutBtn && cancelLogoutBtn) {
             logoutLink.addEventListener('click', function(event) {
                 event.preventDefault();
-                logoutModal.classList.add('show');
+                logoutModalEl.classList.add('show');
             });
 
-            cancelLogoutBtn.addEventListener('click', function() {
-                logoutModal.classList.remove('show');
+            cancelLogoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                logoutModalEl.classList.remove('show');
             });
 
-            confirmLogoutBtn.addEventListener('click', function() {
+            confirmLogoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 window.location = logoutLink.href;
             });
 
-            logoutModal.addEventListener('click', function(event) {
-                if (event.target === logoutModal) {
-                    logoutModal.classList.remove('show');
+            logoutModalEl.addEventListener('click', function(event) {
+                // Only close when tapping the overlay/background (not the panel/buttons).
+                if (event.target === logoutModalEl) {
+                    logoutModalEl.classList.remove('show');
                 }
             });
         }
