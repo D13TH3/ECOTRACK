@@ -17,6 +17,9 @@ A community recycling and upcycling marketplace built with Django — share, cla
 - Tailwind CSS
 - Leaflet (maps)
 - Django Allauth (authentication + social logins)
+- PWA support (Django PWA + service worker for offline/cached app behavior)
+- SQLite db
+- External API used: OpenStreetMap Nominatim 
 
 
 
